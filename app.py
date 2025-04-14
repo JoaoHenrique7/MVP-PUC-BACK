@@ -64,6 +64,32 @@ def listar_barbeiros():
     barbeiros = Barbeiro.query.all()
     return BarbeiroSchema(many=True).dump(barbeiros), 200
 
+@app.route('/barbeiros/<int:id>', methods=['DELETE'])
+def deletar_barbeiro(id):
+    """
+    Deleta um barbeiro pelo ID
+    ---
+    tags:
+      - Barbeiros
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+        description: ID do barbeiro a ser deletado
+    responses:
+      200:
+        description: Barbeiro deletado com sucesso
+      404:
+        description: Barbeiro não encontrado
+    """
+    barbeiro = Barbeiro.query.get(id)
+    if not barbeiro:
+        return jsonify({"message": "Barbeiro não encontrado"}), 404
+    db.session.delete(barbeiro)
+    db.session.commit()
+    return jsonify({"message": "Barbeiro deletado com sucesso"}), 200
+
 # ---- Rotas Serviço ----
 @app.route('/servicos', methods=['POST'])
 def criar_servico():
@@ -112,6 +138,32 @@ def listar_servicos():
     """
     servicos = Servico.query.all()
     return ServicoSchema(many=True).dump(servicos), 200
+
+@app.route('/servicos/<int:id>', methods=['DELETE'])
+def deletar_servico(id):
+    """
+    Deleta um serviço pelo ID
+    ---
+    tags:
+      - Serviços
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+        description: ID do serviço a ser deletado
+    responses:
+      200:
+        description: Serviço deletado com sucesso
+      404:
+        description: Serviço não encontrado
+    """
+    servico = Servico.query.get(id)
+    if not servico:
+        return jsonify({"message": "Serviço não encontrado"}), 404
+    db.session.delete(servico)
+    db.session.commit()
+    return jsonify({"message": "Serviço deletado com sucesso"}), 200
 
 # ---- Rotas Agendamento ----
 @app.route('/agendamentos', methods=['POST'])
@@ -168,6 +220,32 @@ def listar_agendamentos():
     """
     agendamentos = Agendamento.query.all()
     return AgendamentoSchema(many=True).dump(agendamentos), 200
+
+@app.route('/agendamentos/<int:id>', methods=['DELETE'])
+def deletar_agendamento(id):
+    """
+    Deleta um agendamento pelo ID
+    ---
+    tags:
+      - Agendamentos
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+        description: ID do agendamento a ser deletado
+    responses:
+      200:
+        description: Agendamento deletado com sucesso
+      404:
+        description: Agendamento não encontrado
+    """
+    agendamento = Agendamento.query.get(id)
+    if not agendamento:
+        return jsonify({"message": "Agendamento não encontrado"}), 404
+    db.session.delete(agendamento)
+    db.session.commit()
+    return jsonify({"message": "Agendamento deletado com sucesso"}), 200
 
 # ---- Rodar o servidor ----
 if __name__ == '__main__':

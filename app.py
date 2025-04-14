@@ -9,21 +9,41 @@ from schemas.servico import ServicoSchema
 from schemas.agendamento import AgendamentoSchema
 from logger import logger
 from datetime import datetime
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///barbearia.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+
+# Configuração do Swagger
 swagger = Swagger(app)
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
-
-# Rotas Barbeiro
+# ---- Rotas Barbeiro ----
 @app.route('/barbeiros', methods=['POST'])
 def criar_barbeiro():
-    """Cria um novo barbeiro"""
+    """
+    Cria um novo barbeiro
+    ---
+    tags:
+      - Barbeiros
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: Barbeiro
+          required:
+            - nome
+          properties:
+            nome:
+              type: string
+              description: Nome do barbeiro
+    responses:
+      201:
+        description: Barbeiro criado com sucesso
+    """
     data = request.json
     barbeiro = Barbeiro(nome=data['nome'])
     db.session.add(barbeiro)
@@ -32,13 +52,47 @@ def criar_barbeiro():
 
 @app.route('/barbeiros', methods=['GET'])
 def listar_barbeiros():
+    """
+    Lista todos os barbeiros
+    ---
+    tags:
+      - Barbeiros
+    responses:
+      200:
+        description: Lista de barbeiros
+    """
     barbeiros = Barbeiro.query.all()
     return BarbeiroSchema(many=True).dump(barbeiros), 200
 
-# Rotas Serviço
+# ---- Rotas Serviço ----
 @app.route('/servicos', methods=['POST'])
 def criar_servico():
-    """Cria um novo serviço"""
+    """
+    Cria um novo serviço
+    ---
+    tags:
+      - Serviços
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: Servico
+          required:
+            - nome
+            - preco
+          properties:
+            nome:
+              type: string
+              description: Nome do serviço
+            preco:
+              type: number
+              format: float
+              description: Preço do serviço
+    responses:
+      201:
+        description: Serviço criado com sucesso
+    """
     data = request.json
     servico = Servico(nome=data['nome'], preco=data['preco'])
     db.session.add(servico)
@@ -47,19 +101,55 @@ def criar_servico():
 
 @app.route('/servicos', methods=['GET'])
 def listar_servicos():
+    """
+    Lista todos os serviços
+    ---
+    tags:
+      - Serviços
+    responses:
+      200:
+        description: Lista de serviços
+    """
     servicos = Servico.query.all()
     return ServicoSchema(many=True).dump(servicos), 200
 
-# Rotas Agendamento
+# ---- Rotas Agendamento ----
 @app.route('/agendamentos', methods=['POST'])
 def criar_agendamento():
-    """Cria um novo agendamento"""
+    """
+    Cria um novo agendamento
+    ---
+    tags:
+      - Agendamentos
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: Agendamento
+          required:
+            - barbeiro_id
+            - servico_id
+            - data_hora
+          properties:
+            barbeiro_id:
+              type: integer
+            servico_id:
+              type: integer
+            data_hora:
+              type: string
+              format: date-time
+              description: Data e hora do agendamento (YYYY-MM-DD HH:MM:SS)
+    responses:
+      201:
+        description: Agendamento criado com sucesso
+    """
     data = request.json
+    data_hora = datetime.strptime(data['data_hora'], '%Y-%m-%d %H:%M:%S')
     agendamento = Agendamento(
-        cliente_nome=data['cliente_nome'],
-        data_hora=datetime.fromisoformat(data['data_hora']),
         barbeiro_id=data['barbeiro_id'],
-        servico_id=data['servico_id']
+        servico_id=data['servico_id'],
+        data_hora=data_hora
     )
     db.session.add(agendamento)
     db.session.commit()
@@ -67,8 +157,20 @@ def criar_agendamento():
 
 @app.route('/agendamentos', methods=['GET'])
 def listar_agendamentos():
+    """
+    Lista todos os agendamentos
+    ---
+    tags:
+      - Agendamentos
+    responses:
+      200:
+        description: Lista de agendamentos
+    """
     agendamentos = Agendamento.query.all()
     return AgendamentoSchema(many=True).dump(agendamentos), 200
 
-if __name__ == "__main__":
+# ---- Rodar o servidor ----
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

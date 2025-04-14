@@ -13,7 +13,8 @@ venv/Scripts/activate.bat
 # Para sair do ambiente virtual
 deactivate
 
-
+# Para instalar as dependências:
+pip install -r requirements.txt
 
 
 # ✂️ API de Agendamento de Horários para Barbeiro
